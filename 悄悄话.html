@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>悄悄话 | 我们的时光纪念册</title>
+    <!-- 引入通用样式 -->
+    <link rel="stylesheet" href="assets/common/common.css">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 滚动动画 -->
+    <script src="https://unpkg.com/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
+    <style>
+        /* 悄悄话专属样式 */
+        .whisper-section {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 80px 20px 40px;
+        }
+
+        .section-title {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 40px;
+            color: #1f2937;
+        }
+
+        .section-title i {
+            color: var(--love-dark);
+            margin-right: 8px;
+        }
+
+        .whisper-card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--love-dark);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .btn-encrypt {
+            background-color: var(--love-dark);
+        }
+
+        .btn-encrypt:hover {
+            background-color: var(--love-dark/90);
+        }
+
+        .btn-decrypt {
+            background-color: var(--warm-color);
+        }
+
+        .btn-decrypt:hover {
+            background-color: var(--warm-color/90);
+        }
+
+        .btn-save {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--love-dark/80);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save:hover {
+            background-color: var(--love-dark);
+        }
+
+        .history-section {
+            margin-top: 30px;
+        }
+
+        .history-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+
+        .history-item {
+            padding: 16px;
+            border: 1px solid #f3f4f6;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .history-time {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+
+        .history-content {
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div id="loadingContainer" class="loading-container">
+        <div class="heart-loader">
+            <span></span>
+        </div>
+        <div class="loading-text">加载悄悄话...</div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="nav-bar">
+        <div class="nav-container">
+            <a href="主页面.html" class="nav-back">
+                <i class="fa fa-arrow-left"></i> 回到主页
+            </a>
+            <div class="nav-title">悄悄话</div>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- 悄悄话内容 -->
+    <section class="whisper-section">
+        <h2 class="section-title reveal-item">
+            <i class="fa fa-envelope"></i> 只属于我们的小秘密
+        </h2>
+
+        <div class="whisper-card reveal-item">
+            <!-- 加密密钥 -->
+            <div class="form-group">
+                <label for="secretKey">加密密钥（只有我们知道）</label>
+                <input type="password" id="secretKey" class="form-control" placeholder="输入密钥（默认：20251123）" value="20251123">
+            </div>
+
+            <!-- 输入框 -->
+            <div class="form-group">
+                <label for="whisperInput">想对TA说的话</label>
+                <textarea id="whisperInput" class="form-control" rows="5" placeholder="输入悄悄话..."></textarea>
+            </div>
+
+            <!-- 按钮组 -->
+            <div class="btn-group">
+                <button id="encryptBtn" class="btn btn-encrypt">加密</button>
+                <button id="decryptBtn" class="btn btn-decrypt">解密</button>
+            </div>
+
+            <!-- 结果 -->
+            <div class="form-group">
+                <label for="whisperResult">结果</label>
+                <textarea id="whisperResult" class="form-control" rows="4" readonly placeholder="加密/解密后的内容..."></textarea>
+            </div>
+
+            <!-- 保存按钮 -->
+            <button id="saveWhisperBtn" class="btn-save">保存悄悄话</button>
+
+            <!-- 历史记录 -->
+            <div class="history-section">
+                <h3 class="history-title">历史悄悄话</h3>
+                <div id="whisperHistory" class="history-list">
+                    <!-- 历史记录会在这里显示 -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 引入通用脚本 -->
+    <script src="assets/common/common.js"></script>
+    <script>
+        // 悄悄话专属脚本
+        document.addEventListener('DOMContentLoaded', () => {
+            const keyInput = document.getElementById('secretKey');
+            const input = document.getElementById('whisperInput');
+            const result = document.getElementById('whisperResult');
+            const encryptBtn = document.getElementById('encryptBtn');
+            const decryptBtn = document.getElementById('decryptBtn');
+            const saveBtn = document.getElementById('saveWhisperBtn');
+            const historyContainer = document.getElementById('whisperHistory');
+
+            // 加密按钮点击事件
+            encryptBtn.addEventListener('click', () => {
+            const text = input.value.trim();
+            const key = keyInput.value.trim();
+            const validKey = '20251123'; // 固定有效密钥
+    
+            if (key !== validKey) {
+            alert('密钥错误！请使用正确的密钥');
+            return;
+        }
+    
+            result.value = encrypt(text, key);
+        });
+
+             // 
+            decryptBtn.addEventListener('click', () => {
+            const encoded = input.value.trim();
+            const key = keyInput.value.trim();
+            const validKey = '20251123';
+    
+            if (key !== validKey) {
+            alert('密钥错误！请使用正确的密钥');
+            return;
+        }
+    
+            result.value = decrypt(encoded, key);
+        });
+            // 保存按钮点击事件
+            saveBtn.addEventListener('click', () => {
+                const text = result.value.trim();
+                if (!text) {
+                    alert('请先加密/解密内容！');
+                    return;
+                }
+
+                // 读取历史记录
+                let history = JSON.parse(localStorage.getItem('whisperHistory')) || [];
+                // 添加新记录
+                history.unshift({
+                    time: new Date().toLocaleString(),
+                    content: text
+                });
+                // 保存到本地存储
+                localStorage.setItem('whisperHistory', JSON.stringify(history));
+                // 渲染历史记录
+                renderHistory();
+                alert('保存成功！');
+            });
+
+            // 渲染历史记录
+            <!-- 修改历史记录渲染部分（JavaScript） -->
+function renderHistory() {
+    const history = JSON.parse(localStorage.getItem('whisperHistory')) || [];
+    if (history.length === 0) {
+        historyContainer.innerHTML = '<p class="text-center text-gray-500">暂无悄悄话～</p>';
+        return;
+    }
+
+    // 每条记录添加唯一标识和删除按钮
+    historyContainer.innerHTML = history.map((item, index) => `
+        <div class="history-item" style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div class="history-time">${item.time}</div>
+                <div class="history-content">${item.content}</div>
+            </div>
+            <button class="delete-btn" data-index="${index}" style="background: transparent; border: none; color: #ef4444; cursor: pointer;">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+    `).join('');
+
+    // 绑定删除按钮事件
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const index = parseInt(e.currentTarget.dataset.index);
+            if (confirm('确定要删除这条记录吗？')) {
+                let history = JSON.parse(localStorage.getItem('whisperHistory')) || [];
+                history.splice(index, 1); // 删除对应索引的记录
+                localStorage.setItem('whisperHistory', JSON.stringify(history));
+                renderHistory(); // 重新渲染
+            }
+        });
+    });
+}
+
+            // 初始化渲染历史记录
+            renderHistory();
+        });
+    </script>
+</body>
+</html>

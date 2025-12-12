@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>照片墙 | 我们的时光纪念册</title>
+    <!-- 引入通用样式 -->
+    <link rel="stylesheet" href="assets/common/common.css">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 瀑布流 -->
+    <script src="https://unpkg.com/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
+    <!-- 滚动动画 -->
+    <script src="https://unpkg.com/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
+    <style>
+        /* 原有样式保持不变 */
+        .photo-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px 40px;
+        }
+
+        .section-title {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 40px;
+            color: #1f2937;
+        }
+
+        .section-title i {
+            color: var(--love-dark);
+            margin-right: 8px;
+        }
+
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .photo-tag {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background-color: var(--love-dark/20);
+            color: #4b5563;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .photo-tag.active {
+            background-color: var(--love-dark);
+            color: white;
+        }
+
+        .photo-tag:hover {
+            background-color: var(--love-dark/40);
+        }
+
+        .photo-tag.active:hover {
+            background-color: var(--love-dark/90);
+        }
+
+        .masonry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+            width: 100%;
+        }
+
+        .masonry-item {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            min-height: 200px;
+            max-height: 400px;
+            cursor: pointer;
+        }
+
+        .masonry-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .masonry-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            background-color: #ff4d4f;
+            color: white;
+        }
+
+        .add-photo-btn {
+            display: block;
+            margin: 0 auto 30px; /* 调整外边距，只在底部留间距 */
+            padding: 10px 20px;
+            background-color: var(--love-dark);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .add-photo-btn:hover {
+            background-color: var(--love-dark/90);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .close-modal {
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .submit-btn {
+            background-color: var(--love-dark);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        /* 新增图片查看器样式 */
+        .photo-viewer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .viewer-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .viewer-image {
+            max-width: 100%;
+            max-height: 80vh;
+            transition: transform 0.3s ease;
+            cursor: grab;
+        }
+
+        .viewer-image:active {
+            cursor: grabbing;
+        }
+
+        .viewer-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        .viewer-nav {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+        }
+
+        .nav-btn {
+            background-color: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .zoom-info {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div id="loadingContainer" class="loading-container">
+        <div class="heart-loader">
+            <span></span>
+        </div>
+        <div class="loading-text">加载美好瞬间...</div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="nav-bar">
+        <div class="nav-container">
+            <a href="主页面.html" class="nav-back">
+                <i class="fa fa-arrow-left"></i> 回到主页
+            </a>
+            <div class="nav-title">照片墙</div>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- 照片墙内容 -->
+    <section class="photo-section">
+        <h2 class="section-title reveal-item">
+            <i class="fa fa-camera"></i> 定格美好
+        </h2>
+
+        <!-- 添加照片按钮 - 移到了标题下方，分类标签上方 -->
+        <button class="add-photo-btn" id="addPhotoBtn">
+            <i class="fa fa-plus"></i> 添加新照片
+        </button>
+
+        <!-- 分类标签 -->
+        <div class="tag-container reveal-item">
+            <button class="photo-tag active" data-tag="all">全部</button>
+            <button class="photo-tag" data-tag="date">约会</button>
+            <button class="photo-tag" data-tag="travel">旅行</button>
+            <button class="photo-tag" data-tag="daily">日常小事</button>
+            <button class="photo-tag" data-tag="festival">节日</button>
+        </div>
+
+        <!-- 瀑布流照片容器 -->
+        <div id="masonry-grid" class="masonry-grid reveal-item">
+            
+        </div>
+
+        <!-- 移除了原来底部的添加照片按钮 -->
+    </section>
+
+    <!-- 添加照片模态框 -->
+    <div class="modal" id="addPhotoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">添加新照片</div>
+                <span class="close-modal">&times;</span>
+            </div>
+            <form id="addPhotoForm">
+                <div class="form-group">
+                    <label for="photoFile">选择本地照片</label>
+                    <input type="file" id="photoFile" class="form-control" accept="image/jpg,image/png,image/webp" required>
+                </div>
+                <div class="form-group">
+                    <label for="photoTag">分类</label>
+                    <select id="photoTag" class="form-control" required>
+                        <option value="date">约会</option>
+                        <option value="travel">旅行</option>
+                        <option value="daily">日常小事</option>
+                        <option value="festival">节日</option>
+                    </select>
+                </div>
+                <button type="submit" class="submit-btn">添加照片</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 照片查看器 -->
+    <div class="photo-viewer" id="photoViewer">
+        <div class="viewer-content">
+            <img src="" alt="大图预览" class="viewer-image" id="viewerImage">
+            <div class="viewer-close" id="viewerClose">&times;</div>
+            <div class="viewer-nav">
+                <button class="nav-btn prev-btn" id="prevBtn"><i class="fa fa-chevron-left"></i></button>
+                <button class="nav-btn next-btn" id="nextBtn"><i class="fa fa-chevron-right"></i></button>
+            </div>
+            <div class="zoom-info" id="zoomInfo">缩放: 100%</div>
+        </div>
+    </div>
+
+    <!-- 引入通用脚本 -->
+    <script src="assets/common/common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化瀑布流
+            const masonryGrid = document.getElementById('masonry-grid');
+            const masonry = new Masonry(masonryGrid, {
+                itemSelector: '.masonry-item',
+                columnWidth: '.masonry-item',
+                gutter: 16
+            });
+
+            // 照片查看器相关元素
+            const photoViewer = document.getElementById('photoViewer');
+            const viewerImage = document.getElementById('viewerImage');
+            const viewerClose = document.getElementById('viewerClose');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const zoomInfo = document.getElementById('zoomInfo');
+            
+            // 缩放相关变量
+            let currentScale = 1;
+            let currentIndex = 0;
+            let photosData = [];
+            let isDragging = false;
+            let startX, startY;
+            let translateX = 0;
+            let translateY = 0;
+            let lastTranslateX = 0;
+            let lastTranslateY = 0;
+
+            // 从localStorage获取照片数据
+            function getPhotosFromStorage() {
+                const storedPhotos = localStorage.getItem('lovePhotos');
+                if (storedPhotos) {
+                    return JSON.parse(storedPhotos);
+                } else {
+                    const defaultPhotos = [
+                        { url: 'https://picsum.photos/400/300?random=1', tag: 'date' },
+                        { url: 'https://picsum.photos/400/500?random=2', tag: 'travel' },
+                        { url: 'https://picsum.photos/400/400?random=3', tag: 'daily' },
+                        { url: 'https://picsum.photos/400/350?random=4', tag: 'festival' },
+                        { url: 'https://picsum.photos/400/450?random=5', tag: 'date' },
+                        { url: 'https://picsum.photos/400/380?random=6', tag: 'travel' },
+                        { url: 'https://picsum.photos/400/320?random=7', tag: 'daily' }
+                    ];
+                    savePhotosToStorage(defaultPhotos);
+                    return defaultPhotos;
+                }
+            }
+
+            // 保存照片数据到localStorage
+            function savePhotosToStorage(photos) {
+                localStorage.setItem('lovePhotos', JSON.stringify(photos));
+            }
+
+            // 加载照片
+            function loadPhotos() {
+                photosData = getPhotosFromStorage();
+                masonryGrid.innerHTML = '';
+                
+                photosData.forEach((photo, index) => {
+                    addPhotoToGrid(photo.url, photo.tag, index);
+                });
+                
+                masonry.layout();
+            }
+
+            // 添加照片到网格
+            function addPhotoToGrid(url, tag, index) {
+                const item = document.createElement('div');
+                item.className = 'masonry-item';
+                item.dataset.tag = tag;
+                item.dataset.index = index;
+                
+                // 添加删除按钮
+                const deleteBtn = document.createElement('div');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '<i class="fa fa-trash"></i>';
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // 阻止事件冒泡
+                    if (confirm('确定要删除这张照片吗？')) {
+                        let photos = getPhotosFromStorage();
+                        photos.splice(index, 1);
+                        savePhotosToStorage(photos);
+                        loadPhotos();
+                    }
+                });
+                
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = '照片';
+                
+                item.appendChild(img);
+                item.appendChild(deleteBtn);
+                masonryGrid.appendChild(item);
+                
+                // 点击图片打开查看器
+                item.addEventListener('click', () => {
+                    openPhotoViewer(index);
+                });
+            }
+
+            // 打开照片查看器
+            function openPhotoViewer(index) {
+                currentIndex = index;
+                currentScale = 1;
+                translateX = 0;
+                translateY = 0;
+                lastTranslateX = 0;
+                lastTranslateY = 0;
+                
+                viewerImage.src = photosData[index].url;
+                photoViewer.style.display = 'flex';
+                updateImageTransform();
+                document.body.style.overflow = 'hidden'; // 防止背景滚动
+            }
+
+            // 关闭照片查看器
+            function closePhotoViewer() {
+                photoViewer.style.display = 'none';
+                document.body.style.overflow = ''; // 恢复滚动
+            }
+
+            // 更新图片变换
+            function updateImageTransform() {
+                viewerImage.style.transform = `scale(${currentScale}) translate(${translateX}px, ${translateY}px)`;
+                zoomInfo.textContent = `缩放: ${Math.round(currentScale * 100)}%`;
+            }
+
+            // 切换到上一张
+            function showPrevPhoto() {
+                currentIndex = (currentIndex - 1 + photosData.length) % photosData.length;
+                resetImageTransform();
+                viewerImage.src = photosData[currentIndex].url;
+            }
+
+            // 切换到下一张
+            function showNextPhoto() {
+                currentIndex = (currentIndex + 1) % photosData.length;
+                resetImageTransform();
+                viewerImage.src = photosData[currentIndex].url;
+            }
+
+            // 重置图片变换
+            function resetImageTransform() {
+                currentScale = 1;
+                translateX = 0;
+                translateY = 0;
+                lastTranslateX = 0;
+                lastTranslateY = 0;
+                updateImageTransform();
+            }
+
+            // 初始化加载照片
+            loadPhotos();
+
+            // 分类筛选
+            const tags = document.querySelectorAll('.photo-tag');
+            tags.forEach(tag => {
+                tag.addEventListener('click', () => {
+                    tags.forEach(t => t.classList.remove('active'));
+                    tag.classList.add('active');
+
+                    const tagValue = tag.dataset.tag;
+                    const items = document.querySelectorAll('.masonry-item');
+                    items.forEach(item => {
+                        if (tagValue === 'all' || item.dataset.tag === tagValue) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+
+                    masonry.layout();
+                });
+            });
+
+            // 添加照片功能
+            const addPhotoBtn = document.getElementById('addPhotoBtn');
+            const addPhotoModal = document.getElementById('addPhotoModal');
+            const closeModal = document.querySelector('.close-modal');
+            const addPhotoForm = document.getElementById('addPhotoForm');
+            const photoFile = document.getElementById('photoFile');
+
+            addPhotoBtn.addEventListener('click', () => {
+                addPhotoModal.style.display = 'flex';
+            });
+
+            closeModal.addEventListener('click', () => {
+                addPhotoModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (e) => {
+                if (e.target === addPhotoModal) {
+                    addPhotoModal.style.display = 'none';
+                }
+            });
+
+            // 处理文件上传
+            addPhotoForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const file = photoFile.files[0];
+                const photoTag = document.getElementById('photoTag').value;
+
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        let photos = getPhotosFromStorage();
+                        photos.push({ url: e.target.result, tag: photoTag });
+                        savePhotosToStorage(photos);
+                        loadPhotos();
+                        
+                        addPhotoModal.style.display = 'none';
+                        addPhotoForm.reset();
+                        alert('照片添加成功！');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // 照片查看器事件监听
+            viewerClose.addEventListener('click', closePhotoViewer);
+            
+            prevBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showPrevPhoto();
+            });
+            
+            nextBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showNextPhoto();
+            });
+
+            // 鼠标滚轮缩放
+            viewerImage.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                
+                // 计算缩放因子
+                const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                const newScale = currentScale + delta;
+                
+                // 限制缩放范围
+                if (newScale >= 0.5 && newScale <= 5) {
+                    currentScale = newScale;
+                    updateImageTransform();
+                }
+            });
+
+            // 鼠标拖拽移动
+            viewerImage.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX - lastTranslateX;
+                startY = e.clientY - lastTranslateY;
+                viewerImage.style.cursor = 'grabbing';
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                e.preventDefault();
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                updateImageTransform();
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+                lastTranslateX = translateX;
+                lastTranslateY = translateY;
+                viewerImage.style.cursor = 'grab';
+            });
+
+            // 键盘导航
+            window.addEventListener('keydown', (e) => {
+                if (!photoViewer.style.display || photoViewer.style.display === 'none') return;
+                
+                if (e.key === 'ArrowLeft') {
+                    showPrevPhoto();
+                } else if (e.key === 'ArrowRight') {
+                    showNextPhoto();
+                } else if (e.key === 'Escape') {
+                    closePhotoViewer();
+                } else if (e.key === '+') {
+                    if (currentScale < 5) {
+                        currentScale += 0.1;
+                        updateImageTransform();
+                    }
+                } else if (e.key === '-') {
+                    if (currentScale > 0.5) {
+                        currentScale -= 0.1;
+                        updateImageTransform();
+                    }
+                }
+            });
+
+            // 点击空白处关闭查看器
+            photoViewer.addEventListener('click', (e) => {
+                if (e.target === photoViewer) {
+                    closePhotoViewer();
+                }
+            });
+
+            // 初始化照片预览
+            function initPhotoPreview() {
+                // 可以添加照片预览相关功能
+            }
+            initPhotoPreview();
+        });
+    </script>
+</body>
+</html>

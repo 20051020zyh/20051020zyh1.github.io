@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时光轴 | 我们的时光纪念册</title>
+    <!-- 引入通用样式 -->
+    <link rel="stylesheet" href="assets/common/common.css">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 滚动动画 -->
+    <script src="https://unpkg.com/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
+    <style>
+        /* 时光轴专属样式 */
+        .timeline-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px 40px;
+        }
+
+        .section-title {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 40px;
+            color: #1f2937;
+        }
+
+        .section-title i {
+            color: var(--love-dark);
+            margin-right: 8px;
+        }
+
+        .timeline-container {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 20px;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            background-color: var(--love-dark/30);
+        }
+
+        .timeline-items {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            padding-left: 40px;
+        }
+
+        .timeline-item {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative; /* 添加相对定位 */
+            padding-bottom: 20px; /* 增加底部间距避免重叠 */
+        }
+
+        @media (min-width: 768px) {
+            .timeline-item {
+                flex-direction: row;
+                align-items: center;
+            }
+            .timeline-item:nth-child(even) .timeline-content {
+                order: 2;
+                text-align: right;
+                padding-left: 20px; /* 增加左侧间距 */
+            }
+            .timeline-item:nth-child(odd) .timeline-content {
+                padding-right: 20px; /* 增加右侧间距 */
+            }
+            .timeline-item:nth-child(even) .timeline-img {
+                order: 1;
+            }
+            .timeline-content {
+                width: 50%;
+            }
+            .timeline-img {
+                width: 50%;
+            }
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -28px; /* 调整位置避免与内容重叠 */
+            top: 20px; /* 固定在内容上方 */
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: var(--love-dark);
+            z-index: 10;
+        }
+
+        .timeline-content {
+            position: relative;
+        }
+
+        .timeline-content h3 {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--love-dark);
+            margin-bottom: 8px;
+        }
+
+        .timeline-content p {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .timeline-img img {
+            border-radius: 12px;
+            max-width: 100%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .add-btn {
+            display: block;
+            margin: 40px auto 0;
+            padding: 12px 24px;
+            background-color: var(--love-dark/80);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-btn:hover {
+            background-color: var(--love-dark);
+        }
+
+        /* 删除按钮样式 */
+        .delete-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 16px;
+            opacity: 0.7;
+            transition: all 0.2s ease;
+            padding: 4px;
+        }
+
+        .delete-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        @media (min-width: 768px) {
+            .timeline-item:nth-child(even) .delete-btn {
+                right: auto;
+                left: 0;
+            }
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .modal-close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--love-dark);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--love-dark);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--love-dark/90);
+        }
+
+        /* 确认删除弹窗 */
+        .confirm-modal {
+            z-index: 60;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .cancel-btn {
+            flex: 1;
+            padding: 10px;
+            background-color: #f3f4f6;
+            color: #1f2937;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cancel-btn:hover {
+            background-color: #e5e7eb;
+        }
+
+        .confirm-delete-btn {
+            flex: 1;
+            padding: 10px;
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .confirm-delete-btn:hover {
+            background-color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div id="loadingContainer" class="loading-container">
+        <div class="heart-loader">
+            <span></span>
+        </div>
+        <div class="loading-text">加载时光轨迹...</div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="nav-bar">
+        <div class="nav-container">
+            <a href="主页面.html" class="nav-back">
+                <i class="fa fa-arrow-left"></i> 回到主页
+            </a>
+            <div class="nav-title">时光轴</div>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- 时光轴内容 -->
+    <section class="timeline-section">
+        <h2 class="section-title reveal-item">
+            <i class="fa fa-clock-o"></i> 我们的时光轨迹
+        </h2>
+
+        <div class="timeline-container">
+            <div class="timeline-line"></div>
+            <div class="timeline-items">
+                <!-- 节点1：确定关系 -->
+                <div class="timeline-item reveal-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>2025.11.23 | 确定关系</h3>
+                        <p>这次换个方式开始我们的故事吧,不是我奔向你,而是你带着真心回来,那句"我想跟你谈恋爱",比任何表白都珍贵 ❤️</p>
+                    </div>
+                </div>
+
+                <!-- 添加回忆按钮 -->
+                <div class="text-center reveal-item">
+                    <button id="addMemoryBtn" class="add-btn">
+                        <i class="fa fa-plus mr-1"></i> 添加新回忆
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 添加回忆弹窗 -->
+    <div id="memoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">添加新回忆</h3>
+                <span id="closeModalBtn" class="modal-close">&times;</span>
+            </div>
+            <form id="memoryForm">
+                <div class="form-group">
+                    <label for="date">日期（YYYY.MM.DD）</label>
+                    <input type="text" id="date" name="date" class="form-control" placeholder="如：2025.12.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="title">标题</label>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="如：第一次一起看电影" required>
+                </div>
+                <div class="form-group">
+                    <label for="content">描述</label>
+                    <textarea id="content" name="content" class="form-control" rows="4" placeholder="回忆的细节..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="img">图片链接</label>
+                    <input type="text" id="img" name="img" class="form-control" placeholder="照片的链接（可空）">
+                </div>
+                <button type="submit" class="submit-btn">保存回忆</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 确认删除弹窗 -->
+    <div id="confirmDeleteModal" class="modal confirm-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">确认删除</h3>
+                <span id="closeConfirmModalBtn" class="modal-close">&times;</span>
+            </div>
+            <p>确定要删除这段回忆吗？此操作不可撤销。</p>
+            <div class="confirm-buttons">
+                <button id="cancelDeleteBtn" class="cancel-btn">取消</button>
+                <button id="confirmDeleteBtn" class="confirm-delete-btn">确认删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入通用脚本 -->
+    <script src="assets/common/common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化照片预览
+            initPhotoPreview();
+
+            // 获取DOM元素
+            const modal = document.getElementById('memoryModal');
+            const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+            const openBtn = document.getElementById('addMemoryBtn');
+            const closeBtn = document.getElementById('closeModalBtn');
+            const closeConfirmBtn = document.getElementById('closeConfirmModalBtn');
+            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const form = document.getElementById('memoryForm');
+            const timelineItems = document.querySelector('.timeline-items');
+            const addButtonContainer = document.querySelector('.text-center.reveal-item');
+            
+            // 存储当前要删除的回忆索引
+            let currentDeleteIndex = -1;
+
+            // 渲染时光轴回忆
+            function renderMemories() {
+                const memories = JSON.parse(localStorage.getItem('loveMemories')) || [];
+                
+                // 先清空现有回忆（保留默认节点和添加按钮）
+                const existingItems = timelineItems.querySelectorAll('.timeline-item');
+                existingItems.forEach(item => {
+                    // 只保留第一个默认节点（确定关系）
+                    if (item !== existingItems[0]) {
+                        timelineItems.removeChild(item);
+                    }
+                });
+
+                // 渲染本地存储中的回忆
+                memories.forEach((memory, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'timeline-item reveal-item';
+                    
+                    // 构建内容（包含图片如果有）
+                    let content = `
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <button class="delete-btn" data-index="${index}">
+                                <i class="fa fa-trash-o"></i>
+                            </button>
+                            <h3>${memory.date} | ${memory.title}</h3>
+                            <p>${memory.content}</p>
+                        </div>
+                    `;
+                    
+                    // 如果有图片，添加图片部分
+                    if (memory.img && memory.img !== 'assets/photos/default.jpg') {
+                        content += `
+                            <div class="timeline-img">
+                                <img src="${memory.img}" alt="${memory.title}">
+                            </div>
+                        `;
+                    }
+                    
+                    item.innerHTML = content;
+                    timelineItems.insertBefore(item, addButtonContainer);
+                });
+
+                // 为删除按钮添加事件监听
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        currentDeleteIndex = parseInt(btn.getAttribute('data-index'));
+                        confirmDeleteModal.classList.add('show');
+                    });
+                });
+            }
+
+            // 打开添加回忆弹窗
+            openBtn.addEventListener('click', () => {
+                modal.classList.add('show');
+            });
+
+            // 关闭添加回忆弹窗
+            closeBtn.addEventListener('click', () => {
+                modal.classList.remove('show');
+            });
+
+            // 点击空白处关闭添加回忆弹窗
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+
+            // 关闭确认删除弹窗
+            function closeDeleteModal() {
+                confirmDeleteModal.classList.remove('show');
+                currentDeleteIndex = -1;
+            }
+
+            closeConfirmBtn.addEventListener('click', closeDeleteModal);
+            cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+            
+            // 点击空白处关闭确认删除弹窗
+            confirmDeleteModal.addEventListener('click', (e) => {
+                if (e.target === confirmDeleteModal) {
+                    closeDeleteModal();
+                }
+            });
+
+            // 确认删除回忆
+            confirmDeleteBtn.addEventListener('click', () => {
+                if (currentDeleteIndex !== -1) {
+                    let memories = JSON.parse(localStorage.getItem('loveMemories')) || [];
+                    // 删除对应索引的回忆
+                    memories.splice(currentDeleteIndex, 1);
+                    localStorage.setItem('loveMemories', JSON.stringify(memories));
+                    
+                    // 重新渲染回忆列表
+                    renderMemories();
+                    // 关闭弹窗
+                    closeDeleteModal();
+                }
+            });
+
+            // 提交表单添加回忆
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const memory = {
+                    date: formData.get('date'),
+                    title: formData.get('title'),
+                    content: formData.get('content'),
+                    img: formData.get('img') || 'assets/photos/default.jpg'
+                };
+
+                // 保存到本地存储
+                const memories = JSON.parse(localStorage.getItem('loveMemories')) || [];
+                memories.push(memory);
+                localStorage.setItem('loveMemories', JSON.stringify(memories));
+
+                alert('回忆添加成功！');
+                modal.classList.remove('show');
+                form.reset();
+                // 重新渲染
+                renderMemories();
+            });
+
+            // 初始渲染回忆
+            renderMemories();
+        });
+    </script>
+</body>
+</html>

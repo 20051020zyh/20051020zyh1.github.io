@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>纪念日 | 我们的时光纪念册</title>
+    <!-- 引入通用样式 -->
+    <link rel="stylesheet" href="assets/common/common.css">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 滚动动画 -->
+    <script src="https://unpkg.com/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
+    <style>
+        /* 纪念日专属样式 */
+        .anniversary-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px 40px;
+        }
+
+        .section-title {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 40px;
+            color: #1f2937;
+        }
+
+        .section-title i {
+            color: var(--love-dark);
+            margin-right: 8px;
+        }
+
+        .anniversary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .anniversary-card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .anniversary-card h3 {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--love-dark);
+            margin-bottom: 8px;
+        }
+
+        .anniversary-card .date {
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+
+        .anniversary-card .countdown {
+            font-size: 18px;
+        }
+
+        .anniversary-card .countdown span {
+            font-weight: bold;
+            color: var(--warm-color);
+        }
+
+        .add-btn {
+            display: block;
+            margin: 0 auto;
+            padding: 12px 24px;
+            background-color: var(--warm-color/80);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-btn:hover {
+            background-color: var(--warm-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div id="loadingContainer" class="loading-container">
+        <div class="heart-loader">
+            <span></span>
+        </div>
+        <div class="loading-text">加载重要的日子...</div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="nav-bar">
+        <div class="nav-container">
+            <a href="主页面.html" class="nav-back">
+                <i class="fa fa-arrow-left"></i> 回到主页
+            </a>
+            <div class="nav-title">纪念日</div>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- 纪念日内容 -->
+    <section class="anniversary-section">
+        <h2 class="section-title reveal-item">
+            <i class="fa fa-calendar"></i> 重要的日子
+        </h2>
+
+        <div class="anniversary-grid">
+            <!-- 纪念日1：在一起 -->
+            <div class="anniversary-card card-hover reveal-item">
+                <h3>在一起的日子</h3>
+                <p class="date">2025.11.23</p>
+                <div class="countdown">
+                    距离下一个纪念日还有 <span id="anniversary1">0</span> 天
+                </div>
+            </div>
+
+            <!-- 纪念日2：她的生日 -->
+            <div class="anniversary-card card-hover reveal-item">
+                <h3>宝贝的生日</h3>
+                <p class="date">2000.08.18</p>
+                <div class="countdown">
+                    距离生日还有 <span id="anniversary2">0</span> 天
+                </div>
+            </div>
+        </div>
+
+        <!-- 添加纪念日按钮 -->
+        <button id="addAnniversaryBtn" class="add-btn reveal-item">
+            <i class="fa fa-plus mr-1"></i> 添加纪念日
+        </button>
+    </section>
+
+    <!-- 引入通用脚本 -->
+    <script src="assets/common/common.js"></script>
+    <script>
+        // 纪念日专属脚本
+        document.addEventListener('DOMContentLoaded', () => {
+            // 添加纪念日按钮点击事件
+            document.getElementById('addAnniversaryBtn').addEventListener('click', () => {
+                alert('嘻嘻,会越来越多哒~😜');
+            });
+        });
+    </script>
+</body>
+</html>

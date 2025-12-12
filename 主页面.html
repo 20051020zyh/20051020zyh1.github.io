@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我们的时光 | 专属纪念册</title>
+    <!-- 引入通用样式 -->
+    <link rel="stylesheet" href="assets/common/common.css">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        /* 主页面专属样式 */
+        .hero-section {
+            background: linear-gradient(rgba(254, 247, 251, 0.8), rgba(254, 247, 251, 0.8)), 
+                        url('assets/bg.jpg') center/cover no-repeat;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .title {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: bold;
+            color: #1f2937;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 16px;
+            color: var(--love-dark);
+        }
+
+        .counter {
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #6b7280;
+            margin-bottom: 40px;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .nav-card {
+            background-color: white/80;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            text-decoration: none;
+            color: #1f2937;
+            backdrop-filter: blur(5px);
+            border: 1px solid var(--love-main);
+        }
+
+        .nav-icon {
+            width: 64px;
+            height: 64px;
+            background-color: var(--love-main);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 16px;
+        }
+
+        .nav-icon i {
+            font-size: 24px;
+            color: var(--love-dark);
+        }
+
+        .nav-card h3 {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .nav-card p {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div id="loadingContainer" class="loading-container">
+        <div class="heart-loader">
+            <span></span>
+        </div>
+        <div class="loading-text">加载我们的回忆...</div>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="hero-section">
+        <h1 class="title">平兰&煜皓的故事 ❤️</h1>
+        <div id="daysCounter" class="counter">
+            在一起已经 <span class="font-bold">0</span> 天
+        </div>
+        <p class="subtitle">从2025.11.23开始，每一秒都值得珍藏 ✨</p>
+
+        <div class="nav-grid">
+            <!-- 时光轴 -->
+            <a href="时光轴.html" class="nav-card card-hover">
+                <div class="nav-icon">
+                    <i class="fa fa-clock-o"></i>
+                </div>
+                <h3>时光轴</h3>
+                <p>记录我们的每一个重要瞬间</p>
+            </a>
+
+            <!-- 照片墙 -->
+            <a href="照片墙.html" class="nav-card card-hover">
+                <div class="nav-icon">
+                    <i class="fa fa-camera"></i>
+                </div>
+                <h3>照片墙</h3>
+                <p>定格我们的美好时光</p>
+            </a>
+
+            <!-- 纪念日 -->
+            <a href="纪念日.html" class="nav-card card-hover">
+                <div class="nav-icon">
+                    <i class="fa fa-calendar"></i>
+                </div>
+                <h3>纪念日</h3>
+                <p>重要的日子，我们都记得</p>
+            </a>
+
+            <!-- 悄悄话 -->
+            <a href="悄悄话.html" class="nav-card card-hover">
+                <div class="nav-icon">
+                    <i class="fa fa-envelope"></i>
+                </div>
+                <h3>悄悄话</h3>
+                <p>只属于我们的小秘密</p>
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>❤️ 专属我们的时光纪念册 | 始于 2025，未完待续 ❤️</p>
+        </div>
+    </div>
+
+    <!-- 引入js脚本 -->
+    <script src="assets/common/common.js"></script>
+</body>
+</html>
