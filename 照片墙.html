@@ -11,6 +11,9 @@
     <script src="https://unpkg.com/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
     <!-- 滚动动画 -->
     <script src="https://unpkg.com/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
+    <!-- LeanCloud SDK -->
+    <!-- 替换原来的 LeanCloud SDK 引入代码 -->
+<script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
     <style>
         /* 原有样式保持不变 */
         .photo-section {
@@ -367,7 +370,14 @@
     <!-- 引入通用脚本 -->
     <script src="assets/common/common.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        // 初始化LeanCloud - 请替换为你的AppID和AppKey
+        AV.init({
+            appId: "AppIDUJbbpvhD4TS1VnABzzQCkLrl-gzGzoHsz",
+            appKey: "dWBmYC0RrfmQAfklUXVoJhbO",
+            serverURL: "https://ujbbpvhd.lc-cn-n1-shared.com.leancloud.cn"
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
             // 初始化瀑布流
             const masonryGrid = document.getElementById('masonry-grid');
             const masonry = new Masonry(masonryGrid, {
@@ -395,61 +405,113 @@
             let lastTranslateX = 0;
             let lastTranslateY = 0;
 
-            // 从localStorage获取照片数据
-            function getPhotosFromStorage() {
-                const storedPhotos = localStorage.getItem('lovePhotos');
-                if (storedPhotos) {
-                    return JSON.parse(storedPhotos);
-                } else {
-                    const defaultPhotos = [
-                        { url: 'https://picsum.photos/400/300?random=1', tag: 'date' },
-                        { url: 'https://picsum.photos/400/500?random=2', tag: 'travel' },
-                        { url: 'https://picsum.photos/400/400?random=3', tag: 'daily' },
-                        { url: 'https://picsum.photos/400/350?random=4', tag: 'festival' },
-                        { url: 'https://picsum.photos/400/450?random=5', tag: 'date' },
-                        { url: 'https://picsum.photos/400/380?random=6', tag: 'travel' },
-                        { url: 'https://picsum.photos/400/320?random=7', tag: 'daily' }
-                    ];
-                    savePhotosToStorage(defaultPhotos);
-                    return defaultPhotos;
+            // 从LeanCloud获取照片数据
+            async function getPhotosFromCloud() {
+                try {
+                    const Photo = AV.Object.extend('messages');
+                    const query = new AV.Query(Photo);
+                    query.descending('createdAt'); // 按创建时间排序，最新的在前
+                    const results = await query.find();
+                    
+                    // 转换为普通数组
+                    return results.map(result => {
+                        return {
+                            id: result.id, // 保存对象ID用于后续删除操作
+                            url: result.get('url'),
+                            tag: result.get('tag')
+                        };
+                    });
+                } catch (error) {
+                    console.error('获取照片失败:', error);
+                    // 失败时使用本地存储作为备份
+                    const storedPhotos = localStorage.getItem('lovePhotos');
+                    return storedPhotos ? JSON.parse(storedPhotos) : [];
                 }
             }
 
-            // 保存照片数据到localStorage
+            // 保存照片到LeanCloud
+            async function savePhotoToCloud(photo) {
+                try {
+                    const Photo = AV.Object.extend('messages');
+                    const newPhoto = new Photo();
+                    newPhoto.set('url', photo.url);
+                    newPhoto.set('tag', photo.tag);
+                    await newPhoto.save();
+                    
+                    // 同时保存到本地作为缓存
+                    let localPhotos = getPhotosFromStorage();
+                    localPhotos.push(photo);
+                    savePhotosToStorage(localPhotos);
+                    
+                    return true;
+                } catch (error) {
+                    console.error('保存照片失败:', error);
+                    return false;
+                }
+            }
+
+            // 从LeanCloud删除照片
+            async function deletePhotoFromCloud(id) {
+                try {
+                    const photo = AV.Object.createWithoutData('messages', id);
+                    await photo.destroy();
+                    
+                    // 同时从本地缓存删除
+                    let localPhotos = getPhotosFromStorage();
+                    localPhotos = localPhotos.filter(photo => photo.id !== id);
+                    savePhotosToStorage(localPhotos);
+                    
+                    return true;
+                } catch (error) {
+                    console.error('删除照片失败:', error);
+                    return false;
+                }
+            }
+
+            // 从本地存储获取照片数据（作为缓存）
+            function getPhotosFromStorage() {
+                const storedPhotos = localStorage.getItem('lovePhotos');
+                return storedPhotos ? JSON.parse(storedPhotos) : [];
+            }
+
+            // 保存照片数据到本地存储（作为缓存）
             function savePhotosToStorage(photos) {
                 localStorage.setItem('lovePhotos', JSON.stringify(photos));
             }
 
             // 加载照片
-            function loadPhotos() {
-                photosData = getPhotosFromStorage();
+            async function loadPhotos() {
+                photosData = await getPhotosFromCloud();
                 masonryGrid.innerHTML = '';
                 
                 photosData.forEach((photo, index) => {
-                    addPhotoToGrid(photo.url, photo.tag, index);
+                    addPhotoToGrid(photo.url, photo.tag, index, photo.id);
                 });
                 
                 masonry.layout();
             }
 
             // 添加照片到网格
-            function addPhotoToGrid(url, tag, index) {
+            function addPhotoToGrid(url, tag, index, id) {
                 const item = document.createElement('div');
                 item.className = 'masonry-item';
                 item.dataset.tag = tag;
                 item.dataset.index = index;
+                item.dataset.id = id; // 存储LeanCloud对象ID
                 
                 // 添加删除按钮
                 const deleteBtn = document.createElement('div');
                 deleteBtn.className = 'delete-btn';
                 deleteBtn.innerHTML = '<i class="fa fa-trash"></i>';
-                deleteBtn.addEventListener('click', (e) => {
+                deleteBtn.addEventListener('click', async (e) => {
                     e.stopPropagation(); // 阻止事件冒泡
                     if (confirm('确定要删除这张照片吗？')) {
-                        let photos = getPhotosFromStorage();
-                        photos.splice(index, 1);
-                        savePhotosToStorage(photos);
-                        loadPhotos();
+                        const success = await deletePhotoFromCloud(id);
+                        if (success) {
+                            loadPhotos(); // 重新加载照片列表
+                        } else {
+                            alert('删除失败，请稍后再试');
+                        }
                     }
                 });
                 
@@ -519,7 +581,7 @@
             }
 
             // 初始化加载照片
-            loadPhotos();
+            await loadPhotos();
 
             // 分类筛选
             const tags = document.querySelectorAll('.photo-tag');
@@ -564,22 +626,28 @@
             });
 
             // 处理文件上传
-            addPhotoForm.addEventListener('submit', (e) => {
+            addPhotoForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const file = photoFile.files[0];
                 const photoTag = document.getElementById('photoTag').value;
 
                 if (file) {
                     const reader = new FileReader();
-                    reader.onload = function(e) {
-                        let photos = getPhotosFromStorage();
-                        photos.push({ url: e.target.result, tag: photoTag });
-                        savePhotosToStorage(photos);
-                        loadPhotos();
+                    reader.onload = async function(e) {
+                        const photo = {
+                            url: e.target.result,
+                            tag: photoTag
+                        };
                         
-                        addPhotoModal.style.display = 'none';
-                        addPhotoForm.reset();
-                        alert('照片添加成功！');
+                        const success = await savePhotoToCloud(photo);
+                        if (success) {
+                            loadPhotos(); // 重新加载照片列表
+                            addPhotoModal.style.display = 'none';
+                            addPhotoForm.reset();
+                            alert('照片添加成功！所有用户都能看到这张照片了');
+                        } else {
+                            alert('添加失败，请稍后再试');
+                        }
                     };
                     reader.readAsDataURL(file);
                 }
@@ -675,5 +743,4 @@
         });
     </script>
 </body>
-
 </html>
