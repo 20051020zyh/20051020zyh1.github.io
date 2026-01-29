@@ -4,8 +4,8 @@ const GLOBAL_CONFIG = {
     loveStartDate: new Date(2026, 0, 28),
     // 纪念日配置（只保留两个）
     anniversaries: [
-        { id: 'anniversary1', name: '在一起', date: new Date(2026, 0, 8) },
-        { id: 'anniversary2', name: '宝贝的生日', date: new Date(2004, 6, 23) }
+        { id: 'anniversary1', name: '在一起', date: new Date(2026, 0, 28) },
+        { id: 'anniversary2', name: '宝贝的生日', date: new Date(2004, 10, 01) }
     ],
     // 加密默认密钥
     defaultSecretKey: "20251123"
@@ -129,4 +129,5 @@ function initPhotoPreview() {
         });
     });
 }
+
 
