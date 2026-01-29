@@ -1,10 +1,10 @@
 // 全局配置
 const GLOBAL_CONFIG = {
     // 在一起的日期：2025年11月23日（月份-1）
-    loveStartDate: new Date(2025, 10, 23),
+    loveStartDate: new Date(2026, 0, 28),
     // 纪念日配置（只保留两个）
     anniversaries: [
-        { id: 'anniversary1', name: '在一起', date: new Date(2025, 10, 23) },
+        { id: 'anniversary1', name: '在一起', date: new Date(2026, 0, 8) },
         { id: 'anniversary2', name: '宝贝的生日', date: new Date(2004, 6, 23) }
     ],
     // 加密默认密钥
@@ -129,3 +129,4 @@ function initPhotoPreview() {
         });
     });
 }
+
